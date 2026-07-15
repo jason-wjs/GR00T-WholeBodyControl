@@ -214,6 +214,12 @@ python gear_sonic/data_process/convert_soma_csv_to_motion_lib.py \
 python gear_sonic/data_process/filter_and_copy_bones_data.py \
     --source data/motion_lib_bones_seed/robot --dest data/motion_lib_bones_seed/robot_filtered
 
+# Convert a G1 NPZ motion whose 29 DOFs are in IsaacLab order
+python gear_sonic/data_process/convert_to_pkl.py \
+    --input /path/to/motion.npz \
+    --output outputs/converted_motion/example.pkl \
+    --joint-order isaaclab
+
 # Finetune from released checkpoint (64+ GPUs recommended)
 accelerate launch --num_processes=8 gear_sonic/train_agent_trl.py \
     +exp=manager/universal_token/all_modes/sonic_release \
@@ -222,6 +228,11 @@ accelerate launch --num_processes=8 gear_sonic/train_agent_trl.py \
     ++manager_env.commands.motion.motion_lib_cfg.motion_file=data/motion_lib_bones_seed/robot_filtered \
     ++manager_env.commands.motion.motion_lib_cfg.smpl_motion_file=data/smpl_filtered
 ```
+
+`convert_to_pkl.py` also accepts a directory and recursively converts every NPZ into an
+individual PKL. `--joint-order` is required and accepts only `isaaclab` or `mujoco`; the
+script never infers the order from file metadata. Inputs must contain `fps`, `joint_pos`
+(`T x 29`), `body_pos_w` (`T x 30 x 3`), and wxyz `body_quat_w` (`T x 30 x 4`).
 
 For the full guide including multi-node training, evaluation, ONNX export, and SOMA encoder setup:
 📖 [Installation (Training)](https://nvlabs.github.io/GR00T-WholeBodyControl/getting_started/installation_training.html) |

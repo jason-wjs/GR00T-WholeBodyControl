@@ -123,6 +123,12 @@ def main(override_config: omegaconf.OmegaConf):
     else:
         config = override_config
 
+    # The low-latency release checkpoint was trained with a reward term that is
+    # not present in this release's RewardsCfg. Rewards do not affect policy
+    # inference, so discard the stale training-only term during evaluation.
+    with omegaconf.open_dict(config):
+        config.manager_env.rewards.pop("energy_consumption", None)
+
     meta_path = Path(config.experiment_dir) / "meta.yaml"
     if meta_path.exists():
         meta = yaml.safe_load(open(meta_path))  # noqa: SIM115
